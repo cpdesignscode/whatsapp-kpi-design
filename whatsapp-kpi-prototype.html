@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pulse · WhatsApp Chat KPI</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0B141A;
+  --sidebar: #1F2C34;
+  --card: #1E2930;
+  --card2: #182028;
+  --card-hover: #233038;
+  --accent: #00A884;
+  --accent-light: #25D366;
+  --teal: #53D0A8;
+  --text-pri: #E9EDEF;
+  --text-sec: #8696A0;
+  --dim: #3B4A54;
+  --border: rgba(134,150,160,0.12);
+  --positive: #25D366;
+  --negative: #FF6B6B;
+  --warning: #F59E0B;
+  --info: #60A5FA;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text-pri);display:flex;}
+
+/* ── SIDEBAR ── */
+.sidebar{width:220px;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
+.sidebar-logo{padding:20px 16px 16px;border-bottom:1px solid var(--border);}
+.logo-row{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:34px;height:34px;background:linear-gradient(135deg,var(--accent),#128C7E);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+.logo-text{font-size:15px;font-weight:800;color:var(--text-pri);letter-spacing:-0.3px;}
+.logo-sub{font-size:9px;font-weight:600;letter-spacing:1.2px;color:var(--text-sec);margin-top:1px;text-transform:uppercase;}
+.sidebar-nav{padding:12px 8px;flex:1;overflow-y:auto;}
+.nav-section{margin-bottom:18px;}
+.nav-label{font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--dim);padding:0 10px;margin-bottom:6px;text-transform:uppercase;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;margin-bottom:2px;transition:background .15s;color:var(--text-sec);font-size:13px;font-weight:500;position:relative;}
+.nav-item:hover{background:rgba(0,168,132,0.08);color:var(--text-pri);}
+.nav-item.active{background:rgba(0,168,132,0.15);color:var(--accent-light);}
+.nav-icon{font-size:14px;width:18px;text-align:center;flex-shrink:0;}
+.nav-badge{margin-left:auto;background:var(--negative);color:#fff;border-radius:99px;padding:1px 6px;font-size:9px;font-weight:700;}
+.nav-badge.green{background:var(--accent);}
+.sidebar-footer{padding:12px 16px;border-top:1px solid var(--border);}
+.user-row{display:flex;align-items:center;gap:8px;}
+.user-av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#5B21B6);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;}
+.user-name{font-size:12px;font-weight:600;color:var(--text-pri);}
+.user-role{font-size:10px;color:var(--text-sec);}
+.online-badge{margin-left:auto;width:8px;height:8px;border-radius:50%;background:var(--positive);}
+
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{padding:14px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;background:var(--bg);flex-shrink:0;}
+.topbar-greeting{font-size:16px;font-weight:800;color:var(--text-pri);letter-spacing:-0.3px;}
+.topbar-sub{font-size:11px;color:var(--text-sec);margin-top:1px;}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.live-badge{display:flex;align-items:center;gap:5px;background:rgba(37,211,102,.1);border:1px solid rgba(37,211,102,.25);border-radius:99px;padding:4px 10px;font-size:10px;font-weight:700;color:var(--positive);letter-spacing:.5px;}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--positive);animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+.date-chip{font-size:11px;color:var(--text-sec);background:var(--card);border:1px solid var(--border);border-radius:99px;padding:4px 10px;}
+.icon-btn{width:32px;height:32px;border-radius:8px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:var(--text-sec);transition:all .15s;}
+.icon-btn:hover{background:var(--card-hover);color:var(--text-pri);}
+
+/* ── CONTENT LAYOUT ── */
+.content{flex:1;overflow-y:auto;padding:20px 24px;display:flex;gap:18px;}
+.content-main{flex:1;min-width:0;}
+.content-right{width:272px;flex-shrink:0;}
+.view{display:none;}
+.view.active{display:block;}
+
+/* ── KPI CARDS ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
+.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;position:relative;transition:border-color .2s;}
+.kpi-card:hover{border-color:rgba(0,168,132,.25);}
+.kpi-label{font-size:9px;font-weight:700;letter-spacing:1.2px;color:var(--text-sec);text-transform:uppercase;margin-bottom:8px;}
+.kpi-value{font-size:26px;font-weight:900;color:var(--text-pri);line-height:1;margin-bottom:6px;letter-spacing:-1px;}
+.kpi-value span{font-size:13px;font-weight:500;color:var(--text-sec);letter-spacing:0;}
+.kpi-delta{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;border-radius:99px;padding:2px 8px;}
+.kpi-delta.pos{background:rgba(37,211,102,.1);color:var(--positive);}
+.kpi-delta.neg{background:rgba(255,107,107,.1);color:var(--negative);}
+.kpi-delta.warn{background:rgba(245,158,11,.1);color:var(--warning);}
+.insight-btn{position:absolute;top:12px;right:12px;font-size:9px;font-weight:700;color:var(--accent);background:rgba(0,168,132,.1);border:1px solid rgba(0,168,132,.2);border-radius:99px;padding:2px 8px;cursor:pointer;transition:all .15s;user-select:none;}
+.insight-btn:hover{background:rgba(0,168,132,.2);}
+.insight-panel{display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:11px;color:var(--text-sec);line-height:1.6;}
+.insight-panel.open{display:block;}
+.insight-tag{font-size:9px;font-weight:800;color:var(--teal);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:4px;}
+
+/* ── ALERT ── */
+.alert-strip{background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.2);border-left:3px solid var(--warning);border-radius:10px;padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.alert-text{font-size:11px;color:var(--text-sec);line-height:1.45;flex:1;}
+.alert-text strong{color:var(--warning);}
+.alert-dismiss{font-size:10px;color:var(--text-sec);cursor:pointer;padding:3px 8px;border:1px solid var(--border);border-radius:99px;white-space:nowrap;transition:all .15s;}
+.alert-dismiss:hover{border-color:rgba(134,150,160,.3);color:var(--text-pri);}
+
+/* ── CHART ── */
+.chart-section{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:18px;}
+.chart-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.chart-title{font-size:13px;font-weight:700;color:var(--text-pri);flex:1;}
+.chart-tabs{display:flex;gap:2px;background:var(--card2);border-radius:8px;padding:3px;}
+.chart-tab{font-size:10px;font-weight:600;padding:4px 10px;border-radius:6px;cursor:pointer;color:var(--text-sec);transition:all .15s;}
+.chart-tab.active{background:var(--card);color:var(--text-pri);}
+.chart-legend{display:flex;gap:14px;margin-bottom:12px;}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-sec);}
+.legend-dot{width:8px;height:8px;border-radius:50%;}
+.chart-bars{display:flex;align-items:flex-end;gap:5px;height:120px;padding:0 2px;}
+.chart-bar-group{flex:1;display:flex;align-items:flex-end;gap:2px;}
+.chart-bar{flex:1;border-radius:3px 3px 0 0;transition:opacity .15s;cursor:pointer;min-width:0;}
+.chart-bar:hover{opacity:.75;}
+.chart-xlabels{display:flex;gap:5px;padding:6px 2px 0;}
+.chart-xlabel{flex:1;text-align:center;font-size:9px;color:var(--dim);}
+
+/* ── TABLE ── */
+.table-section{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+.table-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.table-title{font-size:13px;font-weight:700;color:var(--text-pri);}
+.search-box{display:flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:5px 10px;margin-left:auto;}
+.search-box input{background:none;border:none;outline:none;font-size:11px;color:var(--text-pri);font-family:'Inter',sans-serif;width:140px;}
+.search-box input::placeholder{color:var(--dim);}
+.filter-pills{display:flex;gap:6px;flex-wrap:wrap;padding:10px 16px;border-bottom:1px solid var(--border);}
+.filter-pill{font-size:10px;font-weight:600;padding:4px 11px;border-radius:99px;cursor:pointer;border:1px solid var(--border);color:var(--text-sec);transition:all .15s;}
+.filter-pill.active{background:rgba(0,168,132,.15);border-color:rgba(0,168,132,.3);color:var(--accent-light);}
+.filter-pill:hover{border-color:rgba(0,168,132,.25);color:var(--text-pri);}
+table{width:100%;border-collapse:collapse;}
+th{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);padding:9px 16px;text-align:left;border-bottom:1px solid var(--border);}
+td{font-size:12px;color:var(--text-sec);padding:10px 16px;border-bottom:1px solid rgba(134,150,160,.06);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,255,255,.015);}
+.contact-cell{display:flex;align-items:center;gap:10px;}
+.avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;}
+.contact-name{font-size:12px;font-weight:600;color:var(--text-pri);}
+.contact-preview{font-size:10px;color:var(--text-sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;}
+.chip{display:inline-flex;align-items:center;gap:4px;border-radius:99px;padding:3px 8px;font-size:9px;font-weight:700;letter-spacing:.5px;}
+.chip-open{background:rgba(96,165,250,.1);color:var(--info);border:1px solid rgba(96,165,250,.2);}
+.chip-waiting{background:rgba(245,158,11,.1);color:var(--warning);border:1px solid rgba(245,158,11,.2);}
+.chip-resolved{background:rgba(37,211,102,.1);color:var(--positive);border:1px solid rgba(37,211,102,.2);}
+.chip-escalated{background:rgba(255,107,107,.1);color:var(--negative);border:1px solid rgba(255,107,107,.2);}
+.chip-dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+
+/* ── RIGHT PANEL ── */
+.rpanel-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:14px;}
+.rpanel-title{font-size:12px;font-weight:700;color:var(--text-pri);margin-bottom:2px;}
+.rpanel-sub{font-size:10px;color:var(--text-sec);padding-bottom:10px;border-bottom:1px solid var(--border);margin-bottom:10px;}
+.agent-row{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid rgba(134,150,160,.06);}
+.agent-row:last-child{border-bottom:none;}
+.agent-name{font-size:11px;font-weight:600;color:var(--text-pri);}
+.agent-stat{font-size:10px;color:var(--text-sec);}
+.agent-score{margin-left:auto;font-size:13px;font-weight:800;color:var(--positive);}
+.alert-item{display:flex;gap:9px;padding:7px 0;border-bottom:1px solid rgba(134,150,160,.06);}
+.alert-item:last-child{border-bottom:none;}
+.alert-dot-col{padding-top:4px;}
+.alert-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.alert-item-text{font-size:10px;color:var(--text-sec);line-height:1.5;}
+.alert-item-text strong{color:var(--text-pri);}
+.alert-time{font-size:9px;color:var(--dim);margin-top:2px;}
+.mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.mini-stat{background:var(--card2);border-radius:9px;padding:10px;text-align:center;}
+.mini-val{font-size:18px;font-weight:800;color:var(--text-pri);}
+.mini-label{font-size:9px;color:var(--text-sec);margin-top:2px;}
+
+/* ── AGENTS VIEW ── */
+.agents-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.agent-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;}
+.agent-card-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.agent-card-av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;flex-shrink:0;}
+.agent-card-name{font-size:13px;font-weight:700;color:var(--text-pri);}
+.agent-card-role{font-size:10px;color:var(--text-sec);}
+.online-dot{width:9px;height:9px;border-radius:50%;margin-left:auto;flex-shrink:0;}
+.is-online{background:var(--positive);box-shadow:0 0 0 2px rgba(37,211,102,.2);}
+.is-offline{background:var(--dim);}
+.agent-metrics{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.agent-metric{text-align:center;background:var(--card2);border-radius:9px;padding:9px;}
+.metric-val{font-size:15px;font-weight:800;color:var(--text-pri);}
+.metric-label{font-size:9px;color:var(--text-sec);margin-top:2px;}
+
+/* ── TOPICS VIEW ── */
+.topics-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:18px;}
+.topic-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;}
+.topic-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.topic-icon{font-size:20px;}
+.topic-name{font-size:13px;font-weight:700;color:var(--text-pri);}
+.topic-pct{margin-left:auto;font-size:20px;font-weight:900;letter-spacing:-1px;}
+.topic-bar-bg{height:4px;background:var(--dim);border-radius:99px;margin-bottom:12px;overflow:hidden;}
+.topic-bar-fill{height:4px;border-radius:99px;transition:width .6s ease;}
+.topic-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.topic-stat strong{font-size:12px;font-weight:700;color:var(--text-pri);display:block;margin-bottom:2px;}
+.topic-stat{font-size:9px;color:var(--text-sec);}
+
+/* ── REPORTS VIEW ── */
+.reports-list{display:flex;flex-direction:column;gap:10px;}
+.report-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:border-color .15s;}
+.report-card:hover{border-color:rgba(0,168,132,.3);}
+.report-icon{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;}
+.report-name{font-size:13px;font-weight:700;color:var(--text-pri);margin-bottom:2px;}
+.report-meta{font-size:10px;color:var(--text-sec);}
+.report-badge{font-size:10px;font-weight:600;padding:4px 10px;border-radius:99px;}
+.badge-sched{background:rgba(0,168,132,.1);color:var(--accent-light);border:1px solid rgba(0,168,132,.2);}
+.badge-manual{background:rgba(96,165,250,.1);color:var(--info);border:1px solid rgba(96,165,250,.2);}
+.dl-btn{font-size:11px;font-weight:600;color:var(--accent);padding:5px 12px;border:1px solid rgba(0,168,132,.3);border-radius:8px;cursor:pointer;transition:all .15s;white-space:nowrap;margin-left:auto;}
+.dl-btn:hover{background:rgba(0,168,132,.1);}
+
+/* ── SETTINGS VIEW ── */
+.settings-section{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:14px;}
+.settings-title{font-size:13px;font-weight:700;color:var(--text-pri);margin-bottom:2px;}
+.settings-sub{font-size:10px;color:var(--text-sec);padding-bottom:12px;border-bottom:1px solid var(--border);margin-bottom:12px;}
+.setting-row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid rgba(134,150,160,.06);}
+.setting-row:last-child{border-bottom:none;}
+.setting-label{font-size:12px;color:var(--text-pri);flex:1;}
+.setting-val{font-size:12px;color:var(--accent);font-weight:600;}
+.edit-btn{font-size:10px;font-weight:600;color:var(--accent-light);padding:4px 10px;background:rgba(0,168,132,.1);border:1px solid rgba(0,168,132,.25);border-radius:7px;cursor:pointer;}
+.integration-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(134,150,160,.06);}
+.integration-row:last-child{border-bottom:none;}
+.int-icon{font-size:19px;}
+.int-name{font-size:12px;font-weight:600;color:var(--text-pri);}
+.int-status{font-size:10px;}
+.is-connected{color:var(--positive);}
+.is-disconnected{color:var(--text-sec);}
+.manage-btn{margin-left:auto;font-size:10px;color:var(--dim);border:1px solid var(--border);border-radius:6px;padding:3px 9px;cursor:pointer;}
+.connect-btn{margin-left:auto;font-size:10px;color:var(--accent-light);border:1px solid rgba(0,168,132,.3);border-radius:6px;padding:3px 9px;cursor:pointer;background:rgba(0,168,132,.08);}
+
+/* ── AI BAR ── */
+.ai-bar{padding:12px 24px 14px;border-top:1px solid var(--border);background:var(--bg);flex-shrink:0;}
+.ai-response{background:rgba(0,168,132,.06);border:1px solid rgba(0,168,132,.2);border-radius:10px;padding:10px 14px;margin-bottom:10px;display:none;}
+.ai-response.open{display:block;}
+.ai-response-label{font-size:9px;font-weight:800;color:var(--teal);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:4px;}
+.ai-response-text{font-size:11px;color:var(--text-sec);line-height:1.65;}
+.ai-input-wrap{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px 14px;transition:border-color .15s;}
+.ai-input-wrap:focus-within{border-color:rgba(0,168,132,.4);}
+.ai-icon{color:var(--accent);font-size:14px;flex-shrink:0;}
+.ai-input{flex:1;background:none;border:none;outline:none;font-size:12px;color:var(--text-pri);font-family:'Inter',sans-serif;}
+.ai-input::placeholder{color:var(--dim);}
+.ai-shortcut{font-size:9px;color:var(--dim);background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:1px 5px;flex-shrink:0;}
+.ai-send{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:opacity .15s;flex-shrink:0;}
+.ai-send:hover{opacity:.85;}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--dim);border-radius:3px;}
+</style>
+</head>
+<body>
+
+<!-- ══ SIDEBAR ══ -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-row">
+      <div class="logo-icon">📊</div>
+      <div>
+        <div class="logo-text">Pulse</div>
+        <div class="logo-sub">WhatsApp KPI</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-label">Analytics</div>
+      <div class="nav-item active" data-view="overview" onclick="switchView('overview')">
+        <span class="nav-icon">⬡</span>Overview
+      </div>
+      <div class="nav-item" data-view="conversations" onclick="switchView('conversations')">
+        <span class="nav-icon">💬</span>Conversations
+        <span class="nav-badge">38</span>
+      </div>
+      <div class="nav-item" data-view="agents" onclick="switchView('agents')">
+        <span class="nav-icon">👥</span>Agents
+      </div>
+      <div class="nav-item" data-view="topics" onclick="switchView('topics')">
+        <span class="nav-icon">◎</span>Topics
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Workspace</div>
+      <div class="nav-item" data-view="reports" onclick="switchView('reports')">
+        <span class="nav-icon">📋</span>Reports
+        <span class="nav-badge green">3</span>
+      </div>
+      <div class="nav-item" data-view="settings" onclick="switchView('settings')">
+        <span class="nav-icon">⚙</span>Settings
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="user-row">
+      <div class="user-av">S</div>
+      <div>
+        <div class="user-name">Sarah Kumar</div>
+        <div class="user-role">Support Manager</div>
+      </div>
+      <div class="online-badge"></div>
+    </div>
+  </div>
+</nav>
+
+<!-- ══ MAIN ══ -->
+<div class="main">
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-greeting" id="main-heading">Good afternoon, Sarah</div>
+      <div class="topbar-sub" id="main-sub">WhatsApp Business KPI · Real-time · July 21, 2026</div>
+    </div>
+    <div class="topbar-right">
+      <div class="live-badge"><span class="live-dot"></span>LIVE</div>
+      <div class="date-chip">📅 Mon, 21 Jul</div>
+      <div class="icon-btn" title="Refresh">↻</div>
+      <div class="icon-btn" title="Export">↗</div>
+      <div class="icon-btn" title="Notifications">🔔</div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="content-main">
+
+      <!-- ══ OVERVIEW ══ -->
+      <div id="view-overview" class="view active">
+
+        <div class="alert-strip" id="alert-strip">
+          <span style="font-size:15px;">⚠️</span>
+          <div class="alert-text"><strong>Response time spike:</strong> Avg wait is 4m 32s — 23% above your 3m 30s SLA. 6 conversations waiting &gt;10 min with no reply.</div>
+          <div class="alert-dismiss" onclick="document.getElementById('alert-strip').style.display='none'">Dismiss</div>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">Total Conversations</div>
+            <div class="kpi-value">1,247</div>
+            <div class="kpi-delta pos">↑ 12% vs yesterday</div>
+            <div class="insight-btn" onclick="toggleInsight(this)">↗ insight</div>
+            <div class="insight-panel">
+              <div class="insight-tag">✦ AI Insight</div>
+              Volume is 12% above Monday average and tracking to a weekly record. The spike is concentrated in Support (+31%) — likely linked to the product update shipped Friday. A broadcast template addressing the top 3 FAQs could deflect ~200 inbound chats.
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Avg Response Time</div>
+            <div class="kpi-value">4m <span>32s</span></div>
+            <div class="kpi-delta warn">↑ 23% — above SLA</div>
+            <div class="insight-btn" onclick="toggleInsight(this)">↗ insight</div>
+            <div class="insight-panel">
+              <div class="insight-tag">✦ AI Insight</div>
+              Tuesday 2–4pm is your historical bottleneck — today is following the same pattern. Adding one agent to the Tuesday afternoon shift, or enabling auto-replies for 'order status' queries, would bring times back within SLA within 20–30 minutes.
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">CSAT Score</div>
+            <div class="kpi-value">4.7 <span>/ 5</span></div>
+            <div class="kpi-delta pos">↑ 0.2 vs last week</div>
+            <div class="insight-btn" onclick="toggleInsight(this)">↗ insight</div>
+            <div class="insight-panel">
+              <div class="insight-tag">✦ AI Insight</div>
+              The improvement correlates with Priya joining 10 days ago — her chats average 4.9. Her approach of proactively sending order tracking links before the customer asks is driving the uptick. Worth codifying as a team script.
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Resolution Rate</div>
+            <div class="kpi-value">87.3<span>%</span></div>
+            <div class="kpi-delta neg">↓ 2.1% — investigate</div>
+            <div class="insight-btn" onclick="toggleInsight(this)">↗ insight</div>
+            <div class="insight-panel">
+              <div class="insight-tag">✦ AI Insight</div>
+              The drop is billing-specific — 32% of billing tickets are unresolved vs 9% last week. 14 are waiting for finance team sign-off. This is a cross-department handoff delay, not an agent issue. A shared Slack escalation channel with finance would close most of these within the hour.
+            </div>
+          </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="chart-section">
+          <div class="chart-header">
+            <div class="chart-title">Conversation Volume · Last 7 Days</div>
+            <div class="chart-tabs">
+              <div class="chart-tab active" onclick="setTab(this)">7d</div>
+              <div class="chart-tab" onclick="setTab(this)">30d</div>
+              <div class="chart-tab" onclick="setTab(this)">90d</div>
+            </div>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:var(--accent-light);"></div>Resolved</div>
+            <div class="legend-item"><div class="legend-dot" style="background:rgba(96,165,250,.6);"></div>Open</div>
+            <div class="legend-item"><div class="legend-dot" style="background:rgba(245,158,11,.5);"></div>Escalated</div>
+          </div>
+          <div class="chart-bars">
+            <div class="chart-bar-group"><div class="chart-bar" style="height:62%;background:rgba(37,211,102,.45);"></div><div class="chart-bar" style="height:18%;background:rgba(96,165,250,.45);"></div><div class="chart-bar" style="height:5%;background:rgba(245,158,11,.4);"></div></div>
+            <div class="chart-bar-group"><div class="chart-bar" style="height:78%;background:rgba(37,211,102,.45);"></div><div class="chart-bar" style="height:20%;background:rgba(96,165,250,.45);"></div><div class="chart-bar" style="height:6%;background:rgba(245,158,11,.4);"></div></div>
+            <div class="chart-bar-group"><div class="chart-bar" style="height:100%;background:rgba(37,211,102,.55);"></div><div class="chart-bar" style="height:24%;background:rgba(96,165,250,.55);"></div><div class="chart-bar" style="height:9%;background:rgba(245,158,11,.5);"></div></div>
+            <div class="chart-bar-group"><div class="chart-bar" style="height:70%;background:rgba(37,211,102,.45);"></div><div class="chart-bar" style="height:17%;background:rgba(96,165,250,.45);"></div><div class="chart-bar" style="height:5%;background:rgba(245,158,11,.4);"></div></div>
+            <div class="chart-bar-group"><div class="chart-bar" style="height:82%;background:rgba(37,211,102,.45);"></div><div class="chart-bar" style="height:22%;background:rgba(96,165,250,.45);"></div><div class="chart-bar" style="height:7%;background:rgba(245,158,11,.4);"></div></div>
+            <div class="chart-bar-group"><div class="chart-bar" style="height:45%;background:rgba(37,211,102,.35);"></div><div class="chart-bar" style="height:10%;background:rgba(96,165,250,.35);"></div><div class="chart-bar" style="height:2%;background:rgba(245,158,11,.3);"></div></div>
+            <div class="chart-bar-group"><div class="chart-bar" style="height:90%;background:var(--accent-light);opacity:.7;"></div><div class="chart-bar" style="height:28%;background:rgba(96,165,250,.6);"></div><div class="chart-bar" style="height:11%;background:rgba(245,158,11,.5);"></div></div>
+          </div>
+          <div class="chart-xlabels">
+            <div class="chart-xlabel">Mon</div>
+            <div class="chart-xlabel">Tue</div>
+            <div class="chart-xlabel">Wed</div>
+            <div class="chart-xlabel">Thu</div>
+            <div class="chart-xlabel">Fri</div>
+            <div class="chart-xlabel">Sat</div>
+            <div class="chart-xlabel" style="color:var(--accent-light);font-weight:700;">Today</div>
+          </div>
+        </div>
+
+        <!-- Recent convos table -->
+        <div class="table-section">
+          <div class="table-header">
+            <div class="table-title">Recent Conversations</div>
+            <div class="search-box"><span style="font-size:11px;color:var(--dim);">⌕</span><input type="text" placeholder="Search conversations..."></div>
+          </div>
+          <div class="filter-pills">
+            <div class="filter-pill active" onclick="activePill(this);filterRows('all')">All</div>
+            <div class="filter-pill" onclick="activePill(this);filterRows('open')">Open</div>
+            <div class="filter-pill" onclick="activePill(this);filterRows('waiting')">Waiting</div>
+            <div class="filter-pill" onclick="activePill(this);filterRows('escalated')">Escalated</div>
+          </div>
+          <table>
+            <thead><tr>
+              <th>Contact</th><th>Agent</th><th>Topic</th><th>Wait</th><th>Status</th>
+            </tr></thead>
+            <tbody>
+              <tr data-st="waiting"><td><div class="contact-cell"><div class="avatar" style="background:#7C3AED;">A</div><div><div class="contact-name">Aisha Mohammed</div><div class="contact-preview">Can I change my delivery address?</div></div></div></td><td>Priya S.</td><td>Support</td><td style="color:var(--warning);font-weight:700;">12m 4s</td><td><span class="chip chip-waiting"><span class="chip-dot"></span>Waiting</span></td></tr>
+              <tr data-st="open"><td><div class="contact-cell"><div class="avatar" style="background:#0891B2;">J</div><div><div class="contact-name">James Carter</div><div class="contact-preview">Need invoice for March order #4421</div></div></div></td><td>Rahul M.</td><td>Billing</td><td>2m 18s</td><td><span class="chip chip-open"><span class="chip-dot"></span>Open</span></td></tr>
+              <tr data-st="escalated"><td><div class="contact-cell"><div class="avatar" style="background:#DC2626;">N</div><div><div class="contact-name">Neha Sharma</div><div class="contact-preview">Still haven't received my refund after 12 days</div></div></div></td><td>—</td><td>Billing</td><td style="color:var(--negative);font-weight:700;">38m 12s</td><td><span class="chip chip-escalated"><span class="chip-dot"></span>Escalated</span></td></tr>
+              <tr data-st="open"><td><div class="contact-cell"><div class="avatar" style="background:#059669;">C</div><div><div class="contact-name">Carlos Mendez</div><div class="contact-preview">Interested in your enterprise plan pricing</div></div></div></td><td>Sara K.</td><td>Sales</td><td>0m 54s</td><td><span class="chip chip-open"><span class="chip-dot"></span>Open</span></td></tr>
+              <tr data-st="open"><td><div class="contact-cell"><div class="avatar" style="background:#D97706;">L</div><div><div class="contact-name">Lisa Park</div><div class="contact-preview">How do I pause my subscription?</div></div></div></td><td>Priya S.</td><td>Support</td><td>3m 42s</td><td><span class="chip chip-open"><span class="chip-dot"></span>Open</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══ CONVERSATIONS ══ -->
+      <div id="view-conversations" class="view">
+        <div class="table-section">
+          <div class="table-header">
+            <div class="table-title">All Conversations</div>
+            <div class="search-box"><span style="font-size:11px;color:var(--dim);">⌕</span><input type="text" placeholder="Search by name, topic, agent..."></div>
+          </div>
+          <div class="filter-pills">
+            <div class="filter-pill active">All (1,247)</div>
+            <div class="filter-pill">Open (421)</div>
+            <div class="filter-pill">Waiting (38)</div>
+            <div class="filter-pill">Resolved (764)</div>
+            <div class="filter-pill">Escalated (24)</div>
+          </div>
+          <table>
+            <thead><tr>
+              <th>Contact</th><th>Agent</th><th>Topic</th><th>1st Response</th><th>Duration</th><th>CSAT</th><th>Status</th>
+            </tr></thead>
+            <tbody>
+              <tr><td><div class="contact-cell"><div class="avatar" style="background:#7C3AED;">A</div><div><div class="contact-name">Aisha Mohammed</div><div class="contact-preview">Delivery address change</div></div></div></td><td>Priya S.</td><td>Support</td><td style="color:var(--warning);">12m 4s</td><td>—</td><td>—</td><td><span class="chip chip-waiting"><span class="chip-dot"></span>Waiting</span></td></tr>
+              <tr><td><div class="contact-cell"><div class="avatar" style="background:#0891B2;">J</div><div><div class="contact-name">James Carter</div><div class="contact-preview">Invoice March #4421</div></div></div></td><td>Rahul M.</td><td>Billing</td><td>2m 18s</td><td>8m</td><td>—</td><td><span class="chip chip-open"><span class="chip-dot"></span>Open</span></td></tr>
+              <tr><td><div class="contact-cell"><div class="avatar" style="background:#DC2626;">N</div><div><div class="contact-name">Neha Sharma</div><div class="contact-preview">Refund 12 days overdue</div></div></div></td><td>—</td><td>Billing</td><td style="color:var(--negative);">38m 12s</td><td>—</td><td>—</td><td><span class="chip chip-escalated"><span class="chip-dot"></span>Escalated</span></td></tr>
+              <tr><td><div class="contact-cell"><div class="avatar" style="background:#059669;">C</div><div><div class="contact-name">Carlos Mendez</div><div class="contact-preview">Enterprise pricing</div></div></div></td><td>Sara K.</td><td>Sales</td><td>0m 54s</td><td>15m</td><td>—</td><td><span class="chip chip-open"><span class="chip-dot"></span>Open</span></td></tr>
+              <tr><td><div class="contact-cell"><div class="avatar" style="background:#D97706;">L</div><div><div class="contact-name">Lisa Park</div><div class="contact-preview">Subscription pause</div></div></div></td><td>Priya S.</td><td>Support</td><td>3m 42s</td><td>—</td><td>—</td><td><span class="chip chip-open"><span class="chip-dot"></span>Open</span></td></tr>
+              <tr><td><div class="contact-cell"><div class="avatar" style="background:#6D28D9;">M</div><div><div class="contact-name">Marcus Thompson</div><div class="contact-preview">Product compatibility question</div></div></div></td><td>Rahul M.</td><td>General</td><td>1m 12s</td><td>6m 30s</td><td>⭐ 5.0</td><td><span class="chip chip-resolved"><span class="chip-dot"></span>Resolved</span></td></tr>
+              <tr><td><div class="contact-cell"><div class="avatar" style="background:#0E7490;">Y</div><div><div class="contact-name">Yuki Tanaka</div><div class="contact-preview">Order tracking help</div></div></div></td><td>Priya S.</td><td>Support</td><td>0m 45s</td><td>4m 12s</td><td>⭐ 4.8</td><td><span class="chip chip-resolved"><span class="chip-dot"></span>Resolved</span></td></tr>
+              <tr><td><div class="contact-cell"><div class="avatar" style="background:#047857;">R</div><div><div class="contact-name">Ravi Patel</div><div class="contact-preview">Bulk order discount query</div></div></div></td><td>Sara K.</td><td>Sales</td><td>1m 02s</td><td>11m 20s</td><td>⭐ 4.9</td><td><span class="chip chip-resolved"><span class="chip-dot"></span>Resolved</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══ AGENTS ══ -->
+      <div id="view-agents" class="view">
+        <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px;">
+          <div class="kpi-card"><div class="kpi-label">Agents Online</div><div class="kpi-value">6 <span>/ 8</span></div><div class="kpi-delta pos">2 on break</div></div>
+          <div class="kpi-card"><div class="kpi-label">Team CSAT Avg</div><div class="kpi-value">4.7</div><div class="kpi-delta pos">↑ 0.2 vs last week</div></div>
+          <div class="kpi-card"><div class="kpi-label">Avg Handle Time</div><div class="kpi-value">8m <span>12s</span></div><div class="kpi-delta pos">↓ 1m 4s improved</div></div>
+        </div>
+        <div class="agents-grid">
+          <div class="agent-card"><div class="agent-card-header"><div class="agent-card-av" style="background:linear-gradient(135deg,#7C3AED,#6D28D9);">P</div><div><div class="agent-card-name">Priya Sharma</div><div class="agent-card-role">Senior Agent</div></div><div class="online-dot is-online"></div></div><div class="agent-metrics"><div class="agent-metric"><div class="metric-val">87</div><div class="metric-label">Chats Today</div></div><div class="agent-metric"><div class="metric-val" style="color:var(--positive);">4.9</div><div class="metric-label">CSAT</div></div><div class="agent-metric"><div class="metric-val">1m 42s</div><div class="metric-label">Avg Response</div></div><div class="agent-metric"><div class="metric-val" style="color:var(--positive);">96%</div><div class="metric-label">Resolution</div></div></div></div>
+          <div class="agent-card"><div class="agent-card-header"><div class="agent-card-av" style="background:linear-gradient(135deg,#059669,#047857);">S</div><div><div class="agent-card-name">Sara Kim</div><div class="agent-card-role">Sales Agent</div></div><div class="online-dot is-online"></div></div><div class="agent-metrics"><div class="agent-metric"><div class="metric-val">52</div><div class="metric-label">Chats Today</div></div><div class="agent-metric"><div class="metric-val" style="color:var(--positive);">4.8</div><div class="metric-label">CSAT</div></div><div class="agent-metric"><div class="metric-val">2m 05s</div><div class="metric-label">Avg Response</div></div><div class="agent-metric"><div class="metric-val" style="color:var(--positive);">91%</div><div class="metric-label">Resolution</div></div></div></div>
+          <div class="agent-card"><div class="agent-card-header"><div class="agent-card-av" style="background:linear-gradient(135deg,#0891B2,#0E7490);">R</div><div><div class="agent-card-name">Rahul Mehta</div><div class="agent-card-role">Support Agent</div></div><div class="online-dot is-online"></div></div><div class="agent-metrics"><div class="agent-metric"><div class="metric-val">64</div><div class="metric-label">Chats Today</div></div><div class="agent-metric"><div class="metric-val">4.6</div><div class="metric-label">CSAT</div></div><div class="agent-metric"><div class="metric-val">3m 12s</div><div class="metric-label">Avg Response</div></div><div class="agent-metric"><div class="metric-val">89%</div><div class="metric-label">Resolution</div></div></div></div>
+          <div class="agent-card"><div class="agent-card-header"><div class="agent-card-av" style="background:linear-gradient(135deg,#6D28D9,#5B21B6);">T</div><div><div class="agent-card-name">Tom Bradley</div><div class="agent-card-role">Senior Agent</div></div><div class="online-dot is-online"></div></div><div class="agent-metrics"><div class="agent-metric"><div class="metric-val">73</div><div class="metric-label">Chats Today</div></div><div class="agent-metric"><div class="metric-val" style="color:var(--positive);">4.7</div><div class="metric-label">CSAT</div></div><div class="agent-metric"><div class="metric-val">2m 30s</div><div class="metric-label">Avg Response</div></div><div class="agent-metric"><div class="metric-val">93%</div><div class="metric-label">Resolution</div></div></div></div>
+          <div class="agent-card"><div class="agent-card-header"><div class="agent-card-av" style="background:linear-gradient(135deg,#D97706,#B45309);">D</div><div><div class="agent-card-name">David Chen</div><div class="agent-card-role">Support Agent</div></div><div class="online-dot is-online"></div></div><div class="agent-metrics"><div class="agent-metric"><div class="metric-val">41</div><div class="metric-label">Chats Today</div></div><div class="agent-metric"><div class="metric-val" style="color:var(--warning);">4.2</div><div class="metric-label">CSAT</div></div><div class="agent-metric"><div class="metric-val" style="color:var(--warning);">7m 44s</div><div class="metric-label">Avg Response</div></div><div class="agent-metric"><div class="metric-val" style="color:var(--warning);">78%</div><div class="metric-label">Resolution</div></div></div></div>
+          <div class="agent-card"><div class="agent-card-header"><div class="agent-card-av" style="background:linear-gradient(135deg,#DC2626,#B91C1C);">M</div><div><div class="agent-card-name">Maya Patel</div><div class="agent-card-role">Support Agent</div></div><div class="online-dot is-offline"></div></div><div class="agent-metrics"><div class="agent-metric"><div class="metric-val" style="color:var(--dim);">—</div><div class="metric-label">Chats Today</div></div><div class="agent-metric"><div class="metric-val">4.5</div><div class="metric-label">All-time CSAT</div></div><div class="agent-metric"><div class="metric-val" style="color:var(--dim);">—</div><div class="metric-label">Avg Response</div></div><div class="agent-metric"><div class="metric-val" style="color:var(--dim);">—</div><div class="metric-label">Resolution</div></div></div></div>
+        </div>
+      </div>
+
+      <!-- ══ TOPICS ══ -->
+      <div id="view-topics" class="view">
+        <div class="kpi-grid" style="margin-bottom:16px;">
+          <div class="kpi-card"><div class="kpi-label">Top Volume</div><div class="kpi-value" style="font-size:20px;">Support</div><div class="kpi-delta warn">41% of all chats</div></div>
+          <div class="kpi-card"><div class="kpi-label">Fastest Resolution</div><div class="kpi-value" style="font-size:20px;">Sales</div><div class="kpi-delta pos">3m 12s avg</div></div>
+          <div class="kpi-card"><div class="kpi-label">Highest CSAT</div><div class="kpi-value" style="font-size:20px;">Sales</div><div class="kpi-delta pos">4.9 avg score</div></div>
+          <div class="kpi-card"><div class="kpi-label">Needs Attention</div><div class="kpi-value" style="font-size:20px;">Billing</div><div class="kpi-delta neg">32% unresolved</div></div>
+        </div>
+        <div class="topics-grid">
+          <div class="topic-card"><div class="topic-header"><span class="topic-icon">🛠</span><span class="topic-name">Support</span><span class="topic-pct" style="color:var(--accent-light);">41%</span></div><div class="topic-bar-bg"><div class="topic-bar-fill" style="width:41%;background:var(--accent-light);"></div></div><div class="topic-stats"><div class="topic-stat"><strong>511</strong>Chats</div><div class="topic-stat"><strong>4m 12s</strong>Avg Response</div><div class="topic-stat"><strong>89%</strong>Resolved</div><div class="topic-stat"><strong>4.6</strong>CSAT</div></div></div>
+          <div class="topic-card"><div class="topic-header"><span class="topic-icon">📦</span><span class="topic-name">Sales</span><span class="topic-pct" style="color:var(--info);">32%</span></div><div class="topic-bar-bg"><div class="topic-bar-fill" style="width:32%;background:var(--info);"></div></div><div class="topic-stats"><div class="topic-stat"><strong>399</strong>Chats</div><div class="topic-stat"><strong>3m 12s</strong>Avg Response</div><div class="topic-stat"><strong>94%</strong>Resolved</div><div class="topic-stat"><strong>4.9</strong>CSAT</div></div></div>
+          <div class="topic-card"><div class="topic-header"><span class="topic-icon">💳</span><span class="topic-name">Billing</span><span class="topic-pct" style="color:var(--warning);">15%</span></div><div class="topic-bar-bg"><div class="topic-bar-fill" style="width:15%;background:var(--warning);"></div></div><div class="topic-stats"><div class="topic-stat"><strong>187</strong>Chats</div><div class="topic-stat"><strong style="color:var(--warning);">8m 44s</strong>Avg Response</div><div class="topic-stat"><strong style="color:var(--negative);">68%</strong>Resolved</div><div class="topic-stat"><strong style="color:var(--negative);">3.9</strong>CSAT</div></div></div>
+          <div class="topic-card"><div class="topic-header"><span class="topic-icon">💬</span><span class="topic-name">General</span><span class="topic-pct" style="color:var(--text-sec);">12%</span></div><div class="topic-bar-bg"><div class="topic-bar-fill" style="width:12%;background:var(--dim);"></div></div><div class="topic-stats"><div class="topic-stat"><strong>150</strong>Chats</div><div class="topic-stat"><strong>2m 05s</strong>Avg Response</div><div class="topic-stat"><strong>97%</strong>Resolved</div><div class="topic-stat"><strong>4.8</strong>CSAT</div></div></div>
+        </div>
+      </div>
+
+      <!-- ══ REPORTS ══ -->
+      <div id="view-reports" class="view">
+        <div class="reports-list">
+          <div class="report-card"><div class="report-icon" style="background:rgba(37,211,102,.1);">📊</div><div><div class="report-name">Daily KPI Summary</div><div class="report-meta">Last sent: Today 9:00 AM · Management team (4 recipients)</div></div><div class="report-badge badge-sched">Scheduled · Daily</div><div class="dl-btn">↓ Export</div></div>
+          <div class="report-card"><div class="report-icon" style="background:rgba(96,165,250,.1);">👥</div><div><div class="report-name">Agent Performance Report</div><div class="report-meta">Last sent: Mon, 21 Jul · All agents · Weekly cadence</div></div><div class="report-badge badge-sched">Scheduled · Weekly</div><div class="dl-btn">↓ Export</div></div>
+          <div class="report-card"><div class="report-icon" style="background:rgba(255,107,107,.1);">🚨</div><div><div class="report-name">SLA Breach Log</div><div class="report-meta">Last run: Today, 14:23 · 6 breaches detected today</div></div><div class="report-badge badge-manual">Manual</div><div class="dl-btn">↓ Export</div></div>
+          <div class="report-card"><div class="report-icon" style="background:rgba(167,139,250,.1);">⭐</div><div><div class="report-name">CSAT Feedback Digest</div><div class="report-meta">Last sent: Fri, 18 Jul · Customer Success lead · Weekly</div></div><div class="report-badge badge-sched">Scheduled · Weekly</div><div class="dl-btn">↓ Export</div></div>
+          <div class="report-card"><div class="report-icon" style="background:rgba(52,211,153,.1);">🏷</div><div><div class="report-name">Topic Trend Analysis</div><div class="report-meta">Last run: Sun, 20 Jul · Monthly cadence</div></div><div class="report-badge badge-manual">Manual</div><div class="dl-btn">↓ Export</div></div>
+        </div>
+      </div>
+
+      <!-- ══ SETTINGS ══ -->
+      <div id="view-settings" class="view">
+        <div class="settings-section">
+          <div class="settings-title">Alert Thresholds</div>
+          <div class="settings-sub">Trigger notifications when these limits are exceeded</div>
+          <div class="setting-row"><span class="setting-label">Response time warning</span><span class="setting-val">3m 30s</span><div class="edit-btn">Edit</div></div>
+          <div class="setting-row"><span class="setting-label">CSAT drop threshold</span><span class="setting-val">Below 4.0</span><div class="edit-btn">Edit</div></div>
+          <div class="setting-row"><span class="setting-label">Escalation volume alert</span><span class="setting-val">&gt; 10 / hour</span><div class="edit-btn">Edit</div></div>
+          <div class="setting-row"><span class="setting-label">Resolution rate floor</span><span class="setting-val">Below 80%</span><div class="edit-btn">Edit</div></div>
+        </div>
+        <div class="settings-section">
+          <div class="settings-title">Integrations</div>
+          <div class="settings-sub">Connected tools and data sources</div>
+          <div class="integration-row"><span class="int-icon">💬</span><div><div class="int-name">WhatsApp Business API</div><div class="int-status is-connected">● Connected · 2 phone numbers</div></div><div class="manage-btn">Manage</div></div>
+          <div class="integration-row"><span class="int-icon">📊</span><div><div class="int-name">Google Sheets Export</div><div class="int-status is-connected">● Connected · Daily sync at midnight</div></div><div class="manage-btn">Manage</div></div>
+          <div class="integration-row"><span class="int-icon">🔔</span><div><div class="int-name">Slack Notifications</div><div class="int-status is-disconnected">○ Not connected</div></div><div class="connect-btn">+ Connect</div></div>
+          <div class="integration-row"><span class="int-icon">🎯</span><div><div class="int-name">HubSpot CRM</div><div class="int-status is-disconnected">○ Not connected</div></div><div class="connect-btn">+ Connect</div></div>
+        </div>
+        <div class="settings-section">
+          <div class="settings-title">Team</div>
+          <div class="settings-sub">Manage agents, roles, and permissions</div>
+          <div class="setting-row"><span class="setting-label">Active agents</span><span class="setting-val">8 agents</span><div class="edit-btn">Manage</div></div>
+          <div class="setting-row"><span class="setting-label">Workspace timezone</span><span class="setting-val">UTC +5:30 (IST)</span><div class="edit-btn">Edit</div></div>
+          <div class="setting-row"><span class="setting-label">Business hours</span><span class="setting-val">9am – 9pm Mon–Sat</span><div class="edit-btn">Edit</div></div>
+        </div>
+      </div>
+
+    </div><!-- /content-main -->
+
+    <!-- ══ RIGHT PANEL ══ -->
+    <div class="content-right">
+      <div class="rpanel-card">
+        <div class="rpanel-title">Top Agents Today</div>
+        <div class="rpanel-sub">Ranked by CSAT · live</div>
+        <div class="agent-row"><div class="avatar" style="background:linear-gradient(135deg,#7C3AED,#6D28D9);width:28px;height:28px;font-size:11px;">P</div><div><div class="agent-name">Priya Sharma</div><div class="agent-stat">87 chats · 1m 42s</div></div><div class="agent-score">4.9</div></div>
+        <div class="agent-row"><div class="avatar" style="background:linear-gradient(135deg,#059669,#047857);width:28px;height:28px;font-size:11px;">S</div><div><div class="agent-name">Sara Kim</div><div class="agent-stat">52 chats · 2m 05s</div></div><div class="agent-score">4.8</div></div>
+        <div class="agent-row"><div class="avatar" style="background:linear-gradient(135deg,#6D28D9,#5B21B6);width:28px;height:28px;font-size:11px;">T</div><div><div class="agent-name">Tom Bradley</div><div class="agent-stat">73 chats · 2m 30s</div></div><div class="agent-score">4.7</div></div>
+        <div class="agent-row"><div class="avatar" style="background:linear-gradient(135deg,#0891B2,#0E7490);width:28px;height:28px;font-size:11px;">R</div><div><div class="agent-name">Rahul Mehta</div><div class="agent-stat">64 chats · 3m 12s</div></div><div class="agent-score">4.6</div></div>
+      </div>
+
+      <div class="rpanel-card">
+        <div class="rpanel-title">Live Alerts</div>
+        <div class="rpanel-sub">Last 2 hours</div>
+        <div class="alert-item"><div class="alert-dot-col"><div class="alert-dot" style="background:var(--negative);"></div></div><div><div class="alert-item-text"><strong>Neha Sharma</strong> — 38min wait, billing, unassigned. Needs immediate escalation.</div><div class="alert-time">2 min ago</div></div></div>
+        <div class="alert-item"><div class="alert-dot-col"><div class="alert-dot" style="background:var(--warning);"></div></div><div><div class="alert-item-text">Response SLA breached — <strong>6 conversations</strong> over 3m 30s threshold.</div><div class="alert-time">14 min ago</div></div></div>
+        <div class="alert-item"><div class="alert-dot-col"><div class="alert-dot" style="background:var(--info);"></div></div><div><div class="alert-item-text">Billing volume +45% vs yesterday. Possible trigger: Friday product update.</div><div class="alert-time">31 min ago</div></div></div>
+        <div class="alert-item"><div class="alert-dot-col"><div class="alert-dot" style="background:var(--positive);"></div></div><div><div class="alert-item-text">On track for weekly record — 1,400+ chats projected by 6pm.</div><div class="alert-time">1 hr ago</div></div></div>
+      </div>
+
+      <div class="rpanel-card">
+        <div class="rpanel-title">This Hour</div>
+        <div class="rpanel-sub">Live snapshot</div>
+        <div class="mini-grid">
+          <div class="mini-stat"><div class="mini-val">89</div><div class="mini-label">New chats</div></div>
+          <div class="mini-stat"><div class="mini-val" style="color:var(--positive);">76</div><div class="mini-label">Resolved</div></div>
+          <div class="mini-stat"><div class="mini-val" style="color:var(--warning);">6</div><div class="mini-label">SLA breach</div></div>
+          <div class="mini-stat"><div class="mini-val" style="color:var(--negative);">3</div><div class="mini-label">Escalated</div></div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /content -->
+
+  <!-- ══ AI BAR ══ -->
+  <div class="ai-bar">
+    <div class="ai-response" id="ai-resp">
+      <div class="ai-response-label">✦ Pulse AI Analysis</div>
+      <div class="ai-response-text" id="ai-resp-text"></div>
+    </div>
+    <div class="ai-input-wrap">
+      <span class="ai-icon">✦</span>
+      <input class="ai-input" id="ai-inp" type="text" placeholder="Ask Pulse — 'Why is response time up?' · 'Which agent needs help?' · 'What's driving billing escalations?'">
+      <span class="ai-shortcut">⌘K</span>
+      <button class="ai-send" onclick="sendAI()">Ask →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const viewCfg = {
+  overview:       { h: 'Good afternoon, Sarah', sub: 'WhatsApp Business KPI · Real-time · July 21, 2026' },
+  conversations:  { h: 'Conversations', sub: '1,247 total today · 421 open · 38 waiting · 24 escalated' },
+  agents:         { h: 'Agent Performance', sub: '6 online now · 4m 32s team avg response · 4.7 CSAT' },
+  topics:         { h: 'Topic Breakdown', sub: '4 categories · Support 41% · Billing needs attention' },
+  reports:        { h: 'Reports & Exports', sub: '3 scheduled reports · 2 manual templates available' },
+  settings:       { h: 'Settings', sub: 'Alert thresholds · Integrations · Team management' },
+};
+
+function switchView(name) {
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.querySelector(`[data-view="${name}"]`).classList.add('active');
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  const cfg = viewCfg[name];
+  document.getElementById('main-heading').textContent = cfg.h;
+  document.getElementById('main-sub').textContent = cfg.sub;
+  document.getElementById('ai-resp').classList.remove('open');
+}
+
+function toggleInsight(btn) {
+  const panel = btn.nextElementSibling;
+  const open = panel.classList.toggle('open');
+  btn.textContent = open ? '✕ close' : '↗ insight';
+}
+
+function activePill(pill) {
+  pill.closest('.filter-pills').querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+  pill.classList.add('active');
+}
+
+function filterRows(st) {
+  document.querySelectorAll('tr[data-st]').forEach(row => {
+    row.style.display = (st === 'all' || row.dataset.st === st) ? '' : 'none';
+  });
+}
+
+function setTab(tab) {
+  tab.closest('.chart-tabs').querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+}
+
+const aiMap = {
+  'response time': 'Avg response time is 4m 32s — 23% above your 3m 30s SLA. The pattern recurs every Tuesday 2–4pm in your historical data. Today is tracking identically. Adding one agent to this slot, or enabling auto-replies for \'order status\' and \'delivery tracking\' (your top two FAQs), would bring times inside SLA within ~20 minutes.',
+  'csat': 'CSAT is up 0.2 this week to 4.7. The driver is Priya Sharma — her chats score 4.9 avg across 87 conversations. Her differentiator: she proactively sends order tracking links and estimated resolution times before the customer asks. That behaviour is worth documenting as a standard response template for the whole team.',
+  'agent': 'David Chen has the weakest metrics today — 4.2 CSAT, 7m 44s avg response, 78% resolution. His queue is concentrated in Billing, which is the highest-friction category right now due to the finance team backlog. Consider redistributing some of his billing tickets to Tom or Priya, or assigning him General and Sales queries while billing is under pressure.',
+  'billing': 'Billing is your problem category: 32% unresolved vs 9% last week, 3.9 CSAT, 8m 44s avg response. The root cause isn\'t agent performance — it\'s a cross-department handoff delay. 14 tickets are waiting for finance team sign-off with no SLA. Creating a dedicated #billing-escalations Slack channel with a 2-hour response SLA from finance would resolve most of these without agent involvement.',
+  'escalat': '24 conversations escalated today, 18 of which are billing-related and unassigned for over 20 minutes. Assigning a dedicated billing agent for the afternoon shift would clear the backlog in roughly 45 minutes. The escalation rate today (1.9%) is 2x your weekly average — proactive resolution is cheaper than reactive fire-fighting.',
+  'volume': 'You\'re tracking to 1,400+ conversations today — a potential weekly record. The volume spike is primarily Support (+31%) and Billing (+45%), both correlating with a product update shipped Friday. A proactive broadcast message addressing the top 3 support FAQs (order tracking, delivery address changes, subscription management) could deflect 15–20% of inbound volume and ease pressure on the team.',
+  'report': 'Your Daily KPI Summary went out at 9:00 AM today. The Agent Performance Report runs every Monday. You have 3 new SLA breaches since the last run — you can export an updated breach log from the Reports tab now. I\'d also recommend scheduling a Billing Anomaly Report for the next 7 days while the category is under unusual pressure.',
+  'default': 'I\'m watching your live WhatsApp chat data. Today: 1,247 conversations, 4.7 CSAT, 87.3% resolution rate, and 6 SLA breaches. The two metrics to watch are response time (23% above SLA) and billing resolution (32% unresolved). What would you like to dig into?',
+};
+
+function sendAI() {
+  const inp = document.getElementById('ai-inp');
+  const q = inp.value.toLowerCase().trim();
+  if (!q) return;
+  let ans = aiMap.default;
+  for (const [k, v] of Object.entries(aiMap)) {
+    if (k !== 'default' && q.includes(k)) { ans = v; break; }
+  }
+  const resp = document.getElementById('ai-resp');
+  document.getElementById('ai-resp-text').textContent = ans;
+  resp.classList.add('open');
+  inp.value = '';
+}
+
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); document.getElementById('ai-inp').focus(); }
+  if (e.key === 'Enter' && document.activeElement === document.getElementById('ai-inp')) sendAI();
+});
+</script>
+</body>
+</html>
